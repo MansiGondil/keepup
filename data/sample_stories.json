@@ -87,7 +87,7 @@
         { "name": "Example Dev Forum", "url": "https://example.com/forum/dataframe-migration-guide" }
       ],
       "published_at": "2026-10-28T13:30:00Z",
-      "why_this_story": "You follow Data & ML, and this release may break existing code."
+      "why_this_story": "Teams that use this library may need to update existing code."
     },
     {
       "id": "st_20261029_007",
@@ -102,7 +102,7 @@
         { "name": "Placeholder Tech News", "url": "https://example.com/tech/container-vulnerability" }
       ],
       "published_at": "2026-10-29T01:05:00Z",
-      "why_this_story": "You follow DevOps & Security, and a patch is available now."
+      "why_this_story": "Anyone running container builds in CI should patch soon."
     },
     {
       "id": "st_20261029_008",
@@ -115,7 +115,7 @@
         { "name": "Example Health Report", "url": "https://example.com/health/walking-and-sleep-study" }
       ],
       "published_at": "2026-10-28T11:00:00Z",
-      "why_this_story": "You follow Health, and this is an easy habit to try."
+      "why_this_story": "A simple, low-cost habit with a measurable effect on sleep."
     }
   ]
 }
