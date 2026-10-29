@@ -1,7 +1,8 @@
-"""Step 2b: connect to the local Postgres database.
+"""Connect to the local Postgres database.
 
 Run from the backend folder:  python db.py
-It creates the articles table (if missing) and prints its columns and row count.
+It applies every file in sql/ (in name order) and prints each table's
+columns and row count.
 """
 
 import os
@@ -9,6 +10,7 @@ from pathlib import Path
 
 import psycopg
 from dotenv import load_dotenv
+from psycopg import sql
 
 # The folder this file lives in (backend/), so paths work from anywhere.
 BACKEND_DIR = Path(__file__).resolve().parent
@@ -41,25 +43,34 @@ def run_sql_file(path):
         conn.execute(sql)
 
 
+TABLES = ["articles", "pipeline_runs"]
+
+
 def main():
-    sql_file = BACKEND_DIR / "sql" / "001_create_articles.sql"
-    run_sql_file(sql_file)
-    print(f"Applied {sql_file.name}")
-
-    with get_connection() as conn:
-        # Ask Postgres which columns the articles table has, in order.
-        rows = conn.execute(
-            "SELECT column_name FROM information_schema.columns "
-            "WHERE table_name = 'articles' ORDER BY ordinal_position"
-        ).fetchall()
-        columns = [row[0] for row in rows]
-
-        # Count how many articles are stored (0 for now).
-        count = conn.execute("SELECT count(*) FROM articles").fetchone()[0]
+    # Apply 001_..., 002_..., and so on. Each file uses IF NOT EXISTS,
+    # so running them again is safe.
+    for sql_file in sorted((BACKEND_DIR / "sql").glob("*.sql")):
+        run_sql_file(sql_file)
+        print(f"Applied {sql_file.name}")
 
     print(f"Connected to database '{os.environ['POSTGRES_DB']}' as '{os.environ['POSTGRES_USER']}'")
-    print("articles columns:", ", ".join(columns))
-    print("articles rows:", count)
+
+    with get_connection() as conn:
+        for table in TABLES:
+            # Ask Postgres which columns the table has, in order.
+            rows = conn.execute(
+                "SELECT column_name FROM information_schema.columns "
+                "WHERE table_name = %s ORDER BY ordinal_position",
+                (table,),
+            ).fetchall()
+            columns = [row[0] for row in rows]
+
+            # Count the rows. sql.Identifier safely quotes the table name.
+            count_query = sql.SQL("SELECT count(*) FROM {}").format(sql.Identifier(table))
+            count = conn.execute(count_query).fetchone()[0]
+
+            print(f"{table} columns:", ", ".join(columns))
+            print(f"{table} rows:", count)
 
 
 if __name__ == "__main__":
