@@ -1,2 +1,4 @@
 feedparser
 httpx
+psycopg[binary]
+python-dotenv
