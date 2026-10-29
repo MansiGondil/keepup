@@ -1,0 +1,23 @@
+# Local Postgres with the pgvector extension for Keepup.
+# Start it from the backend folder with:  docker compose up -d
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: keepup-db
+    # POSTGRES_USER, POSTGRES_PASSWORD and POSTGRES_DB come from backend/.env
+    env_file: .env
+    ports:
+      # Bind to 127.0.0.1 so only this PC can reach the database.
+      - "127.0.0.1:5432:5432"
+    volumes:
+      # Named volume so the data survives container restarts.
+      - keepup_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # pg_isready reports whether Postgres is accepting connections.
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  keepup_pgdata:
