@@ -1,0 +1,121 @@
+{
+  "date": "2026-10-29",
+  "items": [
+    {
+      "id": "st_20261029_001",
+      "headline": "Major cloud provider restores service after six-hour regional outage",
+      "summary": "A large cloud provider said a faulty configuration change caused a six-hour outage in one region, disrupting storage and compute for thousands of customers. Services are fully restored, and the company promised a detailed post-incident report within a week.",
+      "bucket": "must_know",
+      "category": "devops-security",
+      "source_count": 3,
+      "sources": [
+        { "name": "Sample Wire", "url": "https://example.com/wire/cloud-outage-restored" },
+        { "name": "Example Ops Weekly", "url": "https://example.com/ops/regional-outage-config-change" },
+        { "name": "Placeholder Tech News", "url": "https://example.com/tech/cloud-region-down" }
+      ],
+      "published_at": "2026-10-28T22:40:00Z",
+      "why_this_story": "Covered by many sources and affects a large share of cloud users."
+    },
+    {
+      "id": "st_20261029_002",
+      "headline": "Lawmakers pass framework for testing high-risk AI systems",
+      "summary": "A legislature approved a framework requiring developers of high-risk AI systems to run safety tests and publish results before release. The rules take effect in eighteen months, and smaller companies get extra time to comply.",
+      "bucket": "must_know",
+      "category": "tech-ai",
+      "source_count": 4,
+      "sources": [
+        { "name": "Sample Wire", "url": "https://example.com/wire/ai-testing-framework" },
+        { "name": "Example Policy Review", "url": "https://example.com/policy/high-risk-ai-rules" },
+        { "name": "Placeholder Tech News", "url": "https://example.com/tech/ai-law-passes" },
+        { "name": "Demo Daily", "url": "https://example.com/daily/ai-safety-tests-required" }
+      ],
+      "published_at": "2026-10-28T15:10:00Z",
+      "why_this_story": "A new rule that will shape how AI products are built and released."
+    },
+    {
+      "id": "st_20261029_003",
+      "headline": "Central bank holds interest rates steady for third meeting",
+      "summary": "The central bank kept its benchmark rate unchanged, citing slowing inflation but a still-tight job market. Officials signaled a possible cut early next year if price growth keeps easing.",
+      "bucket": "must_know",
+      "category": "money",
+      "source_count": 3,
+      "sources": [
+        { "name": "Example Finance Desk", "url": "https://example.com/finance/rates-steady" },
+        { "name": "Sample Wire", "url": "https://example.com/wire/central-bank-holds" },
+        { "name": "Demo Daily", "url": "https://example.com/daily/rate-decision" }
+      ],
+      "published_at": "2026-10-28T18:00:00Z",
+      "why_this_story": "Interest rates affect loans, savings, and tech hiring budgets."
+    },
+    {
+      "id": "st_20261029_004",
+      "headline": "Open-source code assistant model tops community leaderboard",
+      "summary": "A small open-weights model built for code completion climbed to the top of a popular community leaderboard, beating several larger models. Developers credit its training data cleanup and say it runs on a single consumer GPU.",
+      "bucket": "trending",
+      "category": "tech-ai",
+      "source_count": 2,
+      "sources": [
+        { "name": "Placeholder Tech News", "url": "https://example.com/tech/open-code-model-leaderboard" },
+        { "name": "Example Dev Forum", "url": "https://example.com/forum/small-code-model-wins" }
+      ],
+      "published_at": "2026-10-29T03:25:00Z",
+      "why_this_story": "Coverage of this story jumped sharply overnight."
+    },
+    {
+      "id": "st_20261029_005",
+      "headline": "City marathon sets participation record",
+      "summary": "A city marathon drew a record number of finishers this weekend, with organizers crediting new beginner pacing groups. The winning time was close to the course record despite strong winds.",
+      "bucket": "trending",
+      "category": "sports",
+      "source_count": 2,
+      "sources": [
+        { "name": "Demo Daily", "url": "https://example.com/daily/marathon-record-turnout" },
+        { "name": "Example Sports Page", "url": "https://example.com/sports/marathon-recap" }
+      ],
+      "published_at": "2026-10-28T20:45:00Z",
+      "why_this_story": "One of the most-shared general stories in the last 24 hours."
+    },
+    {
+      "id": "st_20261029_006",
+      "headline": "Popular dataframe library ships major release with faster joins",
+      "summary": "A widely used dataframe library released a new major version with joins that run up to three times faster and lower memory use. The release drops support for some older APIs, so maintainers published a migration guide.",
+      "bucket": "for_you",
+      "category": "data-ml",
+      "source_count": 2,
+      "sources": [
+        { "name": "Example Data Journal", "url": "https://example.com/data/dataframe-major-release" },
+        { "name": "Example Dev Forum", "url": "https://example.com/forum/dataframe-migration-guide" }
+      ],
+      "published_at": "2026-10-28T13:30:00Z",
+      "why_this_story": "You follow Data & ML, and this release may break existing code."
+    },
+    {
+      "id": "st_20261029_007",
+      "headline": "Researchers disclose flaw in common container image tool",
+      "summary": "Security researchers disclosed a flaw in a common container image build tool that could let a malicious image read files on the build host. A patched version is available, and maintainers recommend upgrading CI runners first.",
+      "bucket": "for_you",
+      "category": "devops-security",
+      "source_count": 3,
+      "sources": [
+        { "name": "Example Security Bulletin", "url": "https://example.com/security/container-tool-flaw" },
+        { "name": "Example Ops Weekly", "url": "https://example.com/ops/patch-your-build-runners" },
+        { "name": "Placeholder Tech News", "url": "https://example.com/tech/container-vulnerability" }
+      ],
+      "published_at": "2026-10-29T01:05:00Z",
+      "why_this_story": "You follow DevOps & Security, and a patch is available now."
+    },
+    {
+      "id": "st_20261029_008",
+      "headline": "Study links short daily walks to better sleep",
+      "summary": "A study of several thousand adults found that people who walked at least twenty minutes a day fell asleep faster and reported better sleep quality. Researchers say the effect held regardless of the time of day.",
+      "bucket": "for_you",
+      "category": "health",
+      "source_count": 1,
+      "sources": [
+        { "name": "Example Health Report", "url": "https://example.com/health/walking-and-sleep-study" }
+      ],
+      "published_at": "2026-10-28T11:00:00Z",
+      "why_this_story": "You follow Health, and this is an easy habit to try."
+    }
+  ]
+}
