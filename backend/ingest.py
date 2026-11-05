@@ -18,8 +18,6 @@ from psycopg.types.json import Jsonb
 
 from db import get_connection
 from feeds import FEEDS, HEADERS, MIN_SECONDS_BETWEEN_REQUESTS, TIMEOUT_SECONDS
-# Reuse the date helper from Step 1.
-from ingest_preview import published_utc
 
 SNIPPET_MAX_CHARS = 300
 ERROR_MAX_CHARS = 500
@@ -33,6 +31,15 @@ ARXIV_PREFIX = re.compile(r"^\s*arXiv:\S+\s+Announce Type:\s*\S+\s+Abstract:\s*"
 
 # When each server was last contacted (time.monotonic()), to space out requests.
 last_request_finished = {}
+
+
+def published_utc(entry):
+    """Return the item's published time as a UTC datetime, or None if missing."""
+    # feedparser turns the date text into a time tuple (already in UTC).
+    parsed = entry.get("published_parsed") or entry.get("updated_parsed")
+    if parsed is None:
+        return None
+    return datetime(*parsed[:6], tzinfo=timezone.utc)
 
 
 def clean_url(url):
