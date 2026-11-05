@@ -4,25 +4,36 @@ Run from the backend folder:  python dup_candidates.py
 Read-only: it only SELECTs, it never changes the database.
 """
 
+import sys
+
 from db import get_connection
+
+# Print non-English letters (e.g. "Flávio") correctly in the Windows console.
+sys.stdout.reconfigure(encoding="utf-8")
 
 # Similarity bands, highest first: (label, lowest similarity, highest similarity).
 # A pair belongs to a band if low <= similarity < high.
 BANDS = [
-    ("0.85+", 0.85, 1.01),
-    ("0.75-0.85", 0.75, 0.85),
-    ("0.65-0.75", 0.65, 0.75),
-    ("0.55-0.65", 0.55, 0.65),
+    ("0.65+", 0.65, 1.01),
+    ("0.60-0.65", 0.60, 0.65),
+    ("0.55-0.60", 0.55, 0.60),
+    ("0.50-0.55", 0.50, 0.55),
+    ("0.45-0.50", 0.45, 0.50),
+    ("0.40-0.45", 0.40, 0.45),
 ]
 PAIRS_PER_BAND = 8
 TITLE_MAX_CHARS = 80
+# Titles shorter than this are usually program labels ("Inside Health").
+MIN_TITLE_WORDS = 4
 
 # Every pair of articles (a.id < b.id, so each pair appears once) that:
 # - both have an embedding and a published time
 # - neither comes from arXiv
+# - both titles have at least MIN_TITLE_WORDS words
 # - were published within 72 hours of each other
 # - are at least as similar as the lowest band.
 # "<=>" is pgvector's cosine distance; similarity = 1 - distance.
+# regexp_split_to_array splits a title on spaces, array_length counts the words.
 PAIRS_SQL = """
     SELECT
         1 - (a.embedding <=> b.embedding)                         AS similarity,
@@ -34,8 +45,10 @@ PAIRS_SQL = """
     WHERE a.embedding IS NOT NULL AND b.embedding IS NOT NULL
       AND a.published_at IS NOT NULL AND b.published_at IS NOT NULL
       AND a.source <> 'arXiv' AND b.source <> 'arXiv'
+      AND array_length(regexp_split_to_array(trim(a.title), '\\s+'), 1) >= %(min_words)s
+      AND array_length(regexp_split_to_array(trim(b.title), '\\s+'), 1) >= %(min_words)s
       AND abs(extract(epoch FROM a.published_at - b.published_at)) <= 72 * 3600
-      AND 1 - (a.embedding <=> b.embedding) >= %s
+      AND 1 - (a.embedding <=> b.embedding) >= %(lowest)s
     ORDER BY similarity DESC
 """
 
@@ -59,7 +72,7 @@ def short(title):
 def main():
     lowest = min(low for _label, low, _high in BANDS)
     with get_connection() as conn:
-        pairs = conn.execute(PAIRS_SQL, (lowest,)).fetchall()
+        pairs = conn.execute(PAIRS_SQL, {"lowest": lowest, "min_words": MIN_TITLE_WORDS}).fetchall()
 
     # Count first, so the totals are easy to see at the top.
     print("pairs per band:")
