@@ -7,9 +7,10 @@ Safe to re-run: only rows WHERE embedding IS NULL are touched.
 import time
 
 from pgvector.psycopg import register_vector
-from sentence_transformers import SentenceTransformer
 
 from db import get_connection
+# sentence_transformers is imported inside load_model(), not here: importing
+# it takes several seconds, and we skip it entirely when there's nothing to do.
 
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 BATCH_SIZE = 64
@@ -37,15 +38,34 @@ def text_for(title, snippet):
     return title + ". " + snippet
 
 
+def load_model():
+    """Load the model from the local cache; download it only if it's missing."""
+    from sentence_transformers import SentenceTransformer
+
+    try:
+        # Fast path (well under a second): use the copy already on disk.
+        # A normal load first checks Hugging Face online, which took ~170 s here.
+        return SentenceTransformer(MODEL_NAME, local_files_only=True)
+    except Exception:
+        # Not cached yet (e.g. first run on a new machine): download it.
+        print("model not cached yet, downloading...")
+        return SentenceTransformer(MODEL_NAME)
+
+
 def main():
     start = time.monotonic()  # a stopwatch for the duration
-    model = SentenceTransformer(MODEL_NAME)
 
     with get_connection() as conn:
+        # Check the database first, before the slow model work.
+        rows = conn.execute(SELECT_SQL).fetchall()
+        if not rows:
+            print("nothing to embed")
+            print(f"seconds taken:           {time.monotonic() - start:.1f}")
+            return
+
+        model = load_model()
         # Teach psycopg how to send numpy arrays as pgvector "vector" values.
         register_vector(conn)
-
-        rows = conn.execute(SELECT_SQL).fetchall()
         embedded = 0
 
         # Work through the rows 64 at a time.
