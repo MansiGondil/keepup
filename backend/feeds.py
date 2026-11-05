@@ -4,6 +4,7 @@ Each feed has:
   name:    the source name stored in articles.source (e.g. "BBC News")
   section: which part of that source the feed covers (e.g. "world")
   url:     the RSS feed address
+  max_items (optional): keep only the newest N items from this feed
 """
 
 FEEDS = [
@@ -23,8 +24,16 @@ FEEDS = [
      "url": "https://feeds.bbci.co.uk/news/science_and_environment/rss.xml"},
     {"name": "BBC News", "section": "entertainment_and_arts",
      "url": "https://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml"},
+    {"name": "arXiv", "section": "data-ml",
+     "url": "https://rss.arxiv.org/rss/cs.LG+stat.ML", "max_items": 25},
+    {"name": "arXiv", "section": "tech-ai",
+     "url": "https://rss.arxiv.org/rss/cs.AI", "max_items": 25},
 ]
 
 # Identify ourselves politely to the feed servers.
 HEADERS = {"User-Agent": "keepup-portfolio-bot/0.1 (+https://github.com/MansiGondil/keepup)"}
 TIMEOUT_SECONDS = 10
+
+# Some servers ask us to wait between requests. arXiv's terms: at most one
+# request every 3 seconds, one connection at a time.
+MIN_SECONDS_BETWEEN_REQUESTS = {"rss.arxiv.org": 3}

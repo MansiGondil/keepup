@@ -17,7 +17,7 @@ import httpx
 from psycopg.types.json import Jsonb
 
 from db import get_connection
-from feeds import FEEDS, HEADERS, TIMEOUT_SECONDS
+from feeds import FEEDS, HEADERS, MIN_SECONDS_BETWEEN_REQUESTS, TIMEOUT_SECONDS
 # Reuse the date helper from Step 1.
 from ingest_preview import published_utc
 
@@ -27,6 +27,12 @@ ERROR_MAX_CHARS = 500
 # Query parameters that only track clicks and don't change the page.
 TRACKING_PREFIXES = ("utm_", "at_")
 TRACKING_NAMES = {"fbclid", "gclid"}
+
+# arXiv descriptions start with "arXiv:2611.03652v1 Announce Type: new Abstract: ...".
+ARXIV_PREFIX = re.compile(r"^\s*arXiv:\S+\s+Announce Type:\s*\S+\s+Abstract:\s*")
+
+# When each server was last contacted (time.monotonic()), to space out requests.
+last_request_finished = {}
 
 
 def clean_url(url):
@@ -45,7 +51,8 @@ def clean_url(url):
 
 def make_snippet(description):
     """Turn a feed description into short plain text, or None if empty."""
-    text = re.sub(r"<[^>]+>", " ", description or "")  # drop HTML tags
+    text = ARXIV_PREFIX.sub("", description or "")      # drop arXiv's prefix
+    text = re.sub(r"<[^>]+>", " ", text)                 # drop HTML tags
     text = html.unescape(text)                           # "&amp;" -> "&"
     text = " ".join(text.split())                        # collapse whitespace
     text = text[:SNIPPET_MAX_CHARS].rstrip()             # keep it short
@@ -65,9 +72,24 @@ def safe_error_text(error):
     return text[:ERROR_MAX_CHARS]
 
 
-def fetch_articles(source, url):
+def polite_get(url):
+    """GET a URL, first waiting if this server asked for a gap between requests."""
+    host = urlsplit(url).netloc
+    gap = MIN_SECONDS_BETWEEN_REQUESTS.get(host, 0)
+    if host in last_request_finished:
+        wait = gap - (time.monotonic() - last_request_finished[host])
+        if wait > 0:
+            time.sleep(wait)
+    try:
+        return httpx.get(url, headers=HEADERS, timeout=TIMEOUT_SECONDS, follow_redirects=True)
+    finally:
+        # Count from when the request ended, even if it failed.
+        last_request_finished[host] = time.monotonic()
+
+
+def fetch_articles(source, url, max_items=None):
     """Download one feed and return a list of article dicts ready to store."""
-    response = httpx.get(url, headers=HEADERS, timeout=TIMEOUT_SECONDS, follow_redirects=True)
+    response = polite_get(url)
     response.raise_for_status()  # treat 4xx/5xx as a failure
     feed = feedparser.parse(response.content)
 
@@ -76,6 +98,11 @@ def fetch_articles(source, url):
         link = entry.get("link")
         if not link:
             continue  # can't store an article without a URL
+        # arXiv marks each item "new", "cross", "replace" or "replace-cross".
+        # Keep only brand-new papers. Other feeds don't have this field.
+        announce_type = entry.get("arxiv_announce_type")
+        if announce_type is not None and announce_type != "new":
+            continue
         # Only metadata and a short snippet. We never store the article body.
         articles.append({
             "source": source,
@@ -84,6 +111,12 @@ def fetch_articles(source, url):
             "snippet": make_snippet(entry.get("summary")),
             "published_at": published_utc(entry),
         })
+
+    if max_items is not None:
+        # Newest first (undated items last), then keep the first N.
+        oldest = datetime.min.replace(tzinfo=timezone.utc)
+        articles.sort(key=lambda a: a["published_at"] or oldest, reverse=True)
+        articles = articles[:max_items]
     return articles
 
 
@@ -129,7 +162,7 @@ def main():
             label = f"{feed['name']} / {feed['section']}"
             try:
                 # Only the name (e.g. "BBC News") goes into articles.source.
-                articles = fetch_articles(feed["name"], feed["url"])
+                articles = fetch_articles(feed["name"], feed["url"], feed.get("max_items"))
                 all_articles.extend(articles)
                 run["sources"].append({"feed": label, "url": feed["url"],
                                        "items": len(articles), "error": None})
