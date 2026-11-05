@@ -7,6 +7,7 @@
       "summary": "A large cloud provider said a faulty configuration change caused a six-hour outage in one region, disrupting storage and compute for thousands of customers. Services are fully restored, and the company promised a detailed post-incident report within a week.",
       "bucket": "must_know",
       "category": "devops-security",
+      "topics": ["sre"],
       "source_count": 3,
       "sources": [
         { "name": "Sample Wire", "url": "https://example.com/wire/cloud-outage-restored" },
@@ -22,6 +23,7 @@
       "summary": "A legislature approved a framework requiring developers of high-risk AI systems to run safety tests and publish results before release. The rules take effect in eighteen months, and smaller companies get extra time to comply.",
       "bucket": "must_know",
       "category": "tech-ai",
+      "topics": ["ai"],
       "source_count": 4,
       "sources": [
         { "name": "Sample Wire", "url": "https://example.com/wire/ai-testing-framework" },
@@ -38,6 +40,7 @@
       "summary": "The central bank kept its benchmark rate unchanged, citing slowing inflation but a still-tight job market. Officials signaled a possible cut early next year if price growth keeps easing.",
       "bucket": "must_know",
       "category": "money",
+      "topics": ["money", "business"],
       "source_count": 3,
       "sources": [
         { "name": "Example Finance Desk", "url": "https://example.com/finance/rates-steady" },
@@ -53,6 +56,7 @@
       "summary": "A small open-weights model built for code completion climbed to the top of a popular community leaderboard, beating several larger models. Developers credit its training data cleanup and say it runs on a single consumer GPU.",
       "bucket": "trending",
       "category": "tech-ai",
+      "topics": ["ai"],
       "source_count": 2,
       "sources": [
         { "name": "Placeholder Tech News", "url": "https://example.com/tech/open-code-model-leaderboard" },
@@ -67,6 +71,7 @@
       "summary": "A city marathon drew a record number of finishers this weekend, with organizers crediting new beginner pacing groups. The winning time was close to the course record despite strong winds.",
       "bucket": "trending",
       "category": "sports",
+      "topics": ["sports"],
       "source_count": 2,
       "sources": [
         { "name": "Demo Daily", "url": "https://example.com/daily/marathon-record-turnout" },
@@ -81,6 +86,7 @@
       "summary": "A widely used dataframe library released a new major version with joins that run up to three times faster and lower memory use. The release drops support for some older APIs, so maintainers published a migration guide.",
       "bucket": "for_you",
       "category": "data-ml",
+      "topics": ["data-ml"],
       "source_count": 2,
       "sources": [
         { "name": "Example Data Journal", "url": "https://example.com/data/dataframe-major-release" },
@@ -95,6 +101,7 @@
       "summary": "Security researchers disclosed a flaw in a common container image build tool that could let a malicious image read files on the build host. A patched version is available, and maintainers recommend upgrading CI runners first.",
       "bucket": "for_you",
       "category": "devops-security",
+      "topics": ["sre", "security"],
       "source_count": 3,
       "sources": [
         { "name": "Example Security Bulletin", "url": "https://example.com/security/container-tool-flaw" },
@@ -110,6 +117,7 @@
       "summary": "A study of several thousand adults found that people who walked at least twenty minutes a day fell asleep faster and reported better sleep quality. Researchers say the effect held regardless of the time of day.",
       "bucket": "for_you",
       "category": "health",
+      "topics": ["health", "science"],
       "source_count": 1,
       "sources": [
         { "name": "Example Health Report", "url": "https://example.com/health/walking-and-sleep-study" }

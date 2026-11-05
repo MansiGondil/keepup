@@ -21,6 +21,29 @@ Every story has exactly one `category` from this list:
 | `sports`          | General |
 | `entertainment`   | General |
 
+The `category` is the single primary label shown on a card. Viewers do not
+filter on it; they filter on `topics` (below).
+
+## Topics
+
+Every story has 1 to 3 `topics` from this list. Viewers pick the topics
+they follow, and the feed follows them.
+
+| Topic           | Covers |
+|-----------------|--------|
+| `ai`            | AI models, products, research and policy. |
+| `data-ml`       | Data engineering, analytics, machine learning. |
+| `sre`           | Reliability: outages, incidents and postmortems, observability, on-call, Kubernetes and cloud infrastructure. |
+| `security`      | Vulnerabilities, breaches, security tooling. |
+| `business`      | Companies, markets, deals. |
+| `world`         | International news. |
+| `health`        | Health and medicine. |
+| `money`         | Personal finance, rates, the economy. |
+| `science`       | Science and the environment. |
+| `careers`       | Jobs, hiring, the workplace. |
+| `sports`        | Sports. |
+| `entertainment` | Film, TV, music, the arts. |
+
 ---
 
 ## GET /api/todays-read
@@ -30,9 +53,10 @@ Today's briefing: up to 8 story cards. The frontend must handle fewer
 
 **Query parameters**
 
-| Name     | Required | Description |
-|----------|----------|-------------|
-| `topics` | no       | Comma-separated categories, e.g. `tech-ai,health`. Only influences the `for_you` bucket. Unknown values are ignored. |
+| Name             | Required | Description |
+|------------------|----------|-------------|
+| `topics`         | no       | Comma-separated topic tags, e.g. `sre,data-ml,ai`. Unknown tags are ignored. |
+| `only_my_topics` | no       | Boolean, default `false`. When `false`, only the `for_you` bucket follows `topics`. When `true`, every item comes from the chosen topics (up to 8, possibly fewer). Ignored when `topics` is omitted. |
 
 **Response**
 
@@ -50,8 +74,9 @@ Today's briefing: up to 8 story cards. The frontend must handle fewer
 | `id`             | string                   | Stable story id. |
 | `headline`       | string                   | |
 | `summary`        | string                   | Max 60 words. |
-| `bucket`         | string                   | `"must_know"` \| `"trending"` \| `"for_you"` |
+| `bucket`         | string or null           | `"must_know"` \| `"trending"` \| `"for_you"`. Required (never `null`) in `/api/todays-read`; always `null` in `/api/stories`. |
 | `category`       | string                   | One of the categories above. |
+| `topics`         | list of string           | 1 to 3 tags from the Topics list. |
 | `source_count`   | integer                  | Number of distinct outlets that covered the story. Always `>= sources.length`. |
 | `sources`        | list of `{name, url}`    | 1 to 5 items (capped at 5). Links to the original articles. |
 | `published_at`   | string (ISO 8601)        | Earliest publication time among the sources. |
@@ -69,6 +94,7 @@ Today's briefing: up to 8 story cards. The frontend must handle fewer
       "summary": "A community group released version 2.0 of a shared format for describing datasets, adding fields for licensing and data lineage.",
       "bucket": "for_you",
       "category": "data-ml",
+      "topics": ["data-ml"],
       "source_count": 2,
       "sources": [
         { "name": "Example Data Journal", "url": "https://example.com/data/dataset-standard-2" },
@@ -82,6 +108,63 @@ Today's briefing: up to 8 story cards. The frontend must handle fewer
 ```
 
 See `data/sample_stories.json` for a full 8-item response.
+
+---
+
+## GET /api/stories
+
+A browse feed of recent stories, newest first (by `published_at`), that
+match ANY of the given topics. Uses the same story object as
+`/api/todays-read`, with `bucket` always `null`.
+
+**Query parameters**
+
+| Name     | Required | Description |
+|----------|----------|-------------|
+| `topics` | no       | Comma-separated topic tags, e.g. `sre,security`. A story matches if it has at least one of them. Unknown tags are ignored. If `topics` is omitted or empty, or no valid tag remains, all recent stories are returned. |
+| `limit`  | no       | Max items to return. Default `20`, max `50`. |
+| `cursor` | no       | Opaque string. Omit it for the first page; to get the next page, pass the `next_cursor` from the previous response. |
+
+Pagination uses a cursor instead of a timestamp because many stories can
+share the same `published_at` (for example arXiv papers), so a timestamp
+alone cannot mark a page boundary.
+
+**Response**
+
+```json
+{
+  "items": [ /* up to `limit` story objects, newest first */ ],
+  "next_cursor": "<string>" | null
+}
+```
+
+`next_cursor` is `null` on the last page.
+
+**Example** (`GET /api/stories?topics=sre&limit=1`)
+
+```json
+{
+  "items": [
+    {
+      "id": "st_20261029_007",
+      "headline": "Researchers disclose flaw in common container image tool",
+      "summary": "Security researchers disclosed a flaw in a common container image build tool that could let a malicious image read files on the build host. A patched version is available, and maintainers recommend upgrading CI runners first.",
+      "bucket": null,
+      "category": "devops-security",
+      "topics": ["sre", "security"],
+      "source_count": 3,
+      "sources": [
+        { "name": "Example Security Bulletin", "url": "https://example.com/security/container-tool-flaw" },
+        { "name": "Example Ops Weekly", "url": "https://example.com/ops/patch-your-build-runners" },
+        { "name": "Placeholder Tech News", "url": "https://example.com/tech/container-vulnerability" }
+      ],
+      "published_at": "2026-10-29T01:05:00Z",
+      "why_this_story": "Anyone running container builds in CI should patch soon."
+    }
+  ],
+  "next_cursor": "Q3Vyc29yRXhhbXBsZQ"
+}
+```
 
 ---
 
@@ -176,6 +259,8 @@ Pipeline health for the most recent run.
 
 - Summaries never exceed 60 words.
 - Every story links to its original sources (`sources` is never empty).
+- `bucket` is always set in `/api/todays-read` and always `null` in
+  `/api/stories`.
 - `why_this_story` may mention the user's topics only when the `topics`
   query parameter was provided.
 - The frontend must only rely on fields documented here. New fields may be
