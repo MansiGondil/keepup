@@ -2,3 +2,5 @@ feedparser
 httpx
 psycopg[binary]
 python-dotenv
+sentence-transformers
+pgvector
