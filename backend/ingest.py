@@ -17,8 +17,9 @@ import httpx
 from psycopg.types.json import Jsonb
 
 from db import get_connection
-# Reuse the feed list, request settings and date helper from Step 1.
-from ingest_preview import FEEDS, HEADERS, TIMEOUT_SECONDS, published_utc
+from feeds import FEEDS, HEADERS, TIMEOUT_SECONDS
+# Reuse the date helper from Step 1.
+from ingest_preview import published_utc
 
 SNIPPET_MAX_CHARS = 300
 ERROR_MAX_CHARS = 500
@@ -123,15 +124,20 @@ def main():
 
     try:
         all_articles = []
-        for source, url in FEEDS:
+        for feed in FEEDS:
+            # e.g. "BBC News / world": tells feeds apart in the run log.
+            label = f"{feed['name']} / {feed['section']}"
             try:
-                articles = fetch_articles(source, url)
+                # Only the name (e.g. "BBC News") goes into articles.source.
+                articles = fetch_articles(feed["name"], feed["url"])
                 all_articles.extend(articles)
-                run["sources"].append({"feed": url, "items": len(articles), "error": None})
+                run["sources"].append({"feed": label, "url": feed["url"],
+                                       "items": len(articles), "error": None})
             except Exception as error:
                 # One bad feed should not stop the others. Note it and move on.
-                print(f"ERROR fetching {source} ({url}): {type(error).__name__}: {error}")
-                run["sources"].append({"feed": url, "items": 0, "error": safe_error_text(error)})
+                print(f"ERROR fetching {label} ({feed['url']}): {type(error).__name__}: {error}")
+                run["sources"].append({"feed": label, "url": feed["url"],
+                                       "items": 0, "error": safe_error_text(error)})
         run["items_fetched"] = len(all_articles)
 
         inserted = 0

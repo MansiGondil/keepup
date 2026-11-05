@@ -8,16 +8,8 @@ from datetime import datetime, timezone
 import feedparser
 import httpx
 
-# Each feed: the source name we want to show, and the feed URL.
-FEEDS = [
-    ("BBC News", "https://feeds.bbci.co.uk/news/rss.xml"),
-    ("BBC News", "https://feeds.bbci.co.uk/news/technology/rss.xml"),
-    ("Hacker News", "https://news.ycombinator.com/rss"),
-]
+from feeds import FEEDS, HEADERS, TIMEOUT_SECONDS
 
-# Identify ourselves politely to the feed servers.
-HEADERS = {"User-Agent": "keepup-portfolio-bot/0.1 (+https://github.com/MansiGondil/keepup)"}
-TIMEOUT_SECONDS = 10
 HOW_MANY = 10
 
 
@@ -51,12 +43,13 @@ def fetch_items(source, url):
 def main():
     all_items = []
 
-    for source, url in FEEDS:
+    for feed in FEEDS:
         try:
-            all_items.extend(fetch_items(source, url))
+            all_items.extend(fetch_items(feed["name"], feed["url"]))
         except Exception as error:
             # One bad feed should not stop the others.
-            print(f"ERROR fetching {source} ({url}): {type(error).__name__}: {error}")
+            label = f"{feed['name']} / {feed['section']}"
+            print(f"ERROR fetching {label} ({feed['url']}): {type(error).__name__}: {error}")
 
     # Items without a date can't be ranked by time, so skip them.
     dated = [item for item in all_items if item["published"] is not None]
