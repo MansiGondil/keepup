@@ -11,10 +11,17 @@ tag out.
 - security: vulnerabilities, breaches, cyber-attacks, hacking, privacy
   incidents
 - business: companies, markets, the economy, deals
-- world: international and political news, public affairs
+- world: international or cross-border affairs: diplomacy, conflicts,
+  trade between countries, global events
+- politics: government, elections, legislatures, parties, public policy and
+  legislation, in any country
 - health, money (personal finance, prices, taxes, cost of living),
   science (research, space, environment), careers (jobs, workplace,
   hiring), sports, entertainment
 Notes: an arXiv paper on a new ML method is data-ml (add ai if it is about
 LLMs or agents). A story can have several tags, for example a cloud outage
 is sre and may also be business.
+Domestic government, elections and policy in any country are politics only.
+Add world as well only when a government story has a clear international
+dimension (a summit, sanctions, a leader's trip abroad). Tags describe the
+subject, not a viewpoint, and do not depend on which country the reader is in.

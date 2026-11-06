@@ -3,31 +3,15 @@
 All endpoints are read-only `GET` requests that return JSON.
 Dates use `YYYY-MM-DD`. Timestamps use ISO 8601 in UTC (e.g. `2026-10-29T07:30:00Z`).
 
-## Categories
-
-Every story has exactly one `category` from this list:
-
-| Category          | Group   |
-|-------------------|---------|
-| `tech-ai`         | Tech    |
-| `data-ml`         | Tech    |
-| `devops-security` | Tech    |
-| `business`        | General |
-| `world`           | General |
-| `health`          | General |
-| `money`           | General |
-| `science`         | General |
-| `careers`         | General |
-| `sports`          | General |
-| `entertainment`   | General |
-
-The `category` is the single primary label shown on a card. Viewers do not
-filter on it; they filter on `topics` (below).
-
 ## Topics
 
-Every story has 1 to 3 `topics` from this list. Viewers pick the topics
-they follow, and the feed follows them.
+Every story has 1 to 3 `topics` from this list, listed most relevant first.
+Viewers pick the topics they follow, and the feed follows them.
+
+A story's `category` is the story's primary topic: always equal to the
+first item in `topics` (topics are listed most relevant first). It is the
+single label shown on a card. Viewers do not filter on it; they filter on
+`topics`.
 
 | Topic           | Covers |
 |-----------------|--------|
@@ -36,7 +20,8 @@ they follow, and the feed follows them.
 | `sre`           | Reliability: outages, incidents and postmortems, observability, on-call, Kubernetes and cloud infrastructure. |
 | `security`      | Vulnerabilities, breaches, security tooling. |
 | `business`      | Companies, markets, deals. |
-| `world`         | International news. |
+| `world`         | International or cross-border affairs: diplomacy, conflicts, trade between countries, global events. |
+| `politics`      | Government, elections, legislatures, parties, public policy and legislation, in any country. Domestic stories are `politics` only; add `world` only with a clear international dimension (a summit, sanctions, a leader's trip abroad). |
 | `health`        | Health and medicine. |
 | `money`         | Personal finance, rates, the economy. |
 | `science`       | Science and the environment. |
@@ -75,8 +60,8 @@ Today's briefing: up to 8 story cards. The frontend must handle fewer
 | `headline`       | string                   | |
 | `summary`        | string                   | Max 60 words. |
 | `bucket`         | string or null           | `"must_know"` \| `"trending"` \| `"for_you"`. Required (never `null`) in `/api/todays-read`; always `null` in `/api/stories`. |
-| `category`       | string                   | One of the categories above. |
-| `topics`         | list of string           | 1 to 3 tags from the Topics list. |
+| `category`       | string                   | The story's primary topic: always equal to `topics[0]`. |
+| `topics`         | list of string           | 1 to 3 tags from the Topics list, most relevant first. |
 | `source_count`   | integer                  | Number of distinct outlets that covered the story. Always `>= sources.length`. |
 | `sources`        | list of `{name, url}`    | 1 to 5 items (capped at 5). Links to the original articles. |
 | `published_at`   | string (ISO 8601)        | Earliest publication time among the sources. |
@@ -150,7 +135,7 @@ alone cannot mark a page boundary.
       "headline": "Researchers disclose flaw in common container image tool",
       "summary": "Security researchers disclosed a flaw in a common container image build tool that could let a malicious image read files on the build host. A patched version is available, and maintainers recommend upgrading CI runners first.",
       "bucket": null,
-      "category": "devops-security",
+      "category": "sre",
       "topics": ["sre", "security"],
       "source_count": 3,
       "sources": [
@@ -258,6 +243,8 @@ Pipeline health for the most recent run.
 ## Rules
 
 - Summaries never exceed 60 words.
+- Topics describe the subject of a story, never a stance, and summaries
+  stay neutral.
 - Every story links to its original sources (`sources` is never empty).
 - `bucket` is always set in `/api/todays-read` and always `null` in
   `/api/stories`.

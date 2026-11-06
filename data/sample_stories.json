@@ -6,7 +6,7 @@
       "headline": "Major cloud provider restores service after six-hour regional outage",
       "summary": "A large cloud provider said a faulty configuration change caused a six-hour outage in one region, disrupting storage and compute for thousands of customers. Services are fully restored, and the company promised a detailed post-incident report within a week.",
       "bucket": "must_know",
-      "category": "devops-security",
+      "category": "sre",
       "topics": ["sre"],
       "source_count": 3,
       "sources": [
@@ -22,8 +22,8 @@
       "headline": "Lawmakers pass framework for testing high-risk AI systems",
       "summary": "A legislature approved a framework requiring developers of high-risk AI systems to run safety tests and publish results before release. The rules take effect in eighteen months, and smaller companies get extra time to comply.",
       "bucket": "must_know",
-      "category": "tech-ai",
-      "topics": ["ai"],
+      "category": "ai",
+      "topics": ["ai", "politics"],
       "source_count": 4,
       "sources": [
         { "name": "Sample Wire", "url": "https://example.com/wire/ai-testing-framework" },
@@ -55,7 +55,7 @@
       "headline": "Open-source code assistant model tops community leaderboard",
       "summary": "A small open-weights model built for code completion climbed to the top of a popular community leaderboard, beating several larger models. Developers credit its training data cleanup and say it runs on a single consumer GPU.",
       "bucket": "trending",
-      "category": "tech-ai",
+      "category": "ai",
       "topics": ["ai"],
       "source_count": 2,
       "sources": [
@@ -100,7 +100,7 @@
       "headline": "Researchers disclose flaw in common container image tool",
       "summary": "Security researchers disclosed a flaw in a common container image build tool that could let a malicious image read files on the build host. A patched version is available, and maintainers recommend upgrading CI runners first.",
       "bucket": "for_you",
-      "category": "devops-security",
+      "category": "sre",
       "topics": ["sre", "security"],
       "source_count": 3,
       "sources": [

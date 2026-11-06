@@ -43,3 +43,4 @@ Thumbs.db
 
 # --- Local labels (contain article text, never commit) ---
 data/labels/labeling_sheet.csv
+data/labels/*.csv
