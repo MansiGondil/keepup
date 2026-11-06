@@ -19,5 +19,27 @@ services:
       timeout: 5s
       retries: 10
 
+  # Runs the Python scripts in Linux. Not started by "docker compose up -d"
+  # (profile "tools"); use:  docker compose run --rm app python <script>.py
+  app:
+    build: .
+    profiles: ["tools"]
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      # Inside Docker the database is reached by its service name, not 127.0.0.1.
+      POSTGRES_HOST: db
+    working_dir: /app
+    volumes:
+      # The backend folder, so code edits are used without rebuilding.
+      - .:/app
+      # The shared data folder (gold labels), read-only.
+      - ../data:/data:ro
+      # Downloaded models survive between runs.
+      - hf_cache:/root/.cache/huggingface
+
 volumes:
   keepup_pgdata:
+  hf_cache:

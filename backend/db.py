@@ -18,7 +18,8 @@ BACKEND_DIR = Path(__file__).resolve().parent
 # Read POSTGRES_USER, POSTGRES_PASSWORD and POSTGRES_DB from backend/.env.
 load_dotenv(BACKEND_DIR / ".env")
 
-DB_HOST = "127.0.0.1"
+# 127.0.0.1 on this PC; docker-compose sets POSTGRES_HOST=db inside Docker.
+DB_HOST = os.environ.get("POSTGRES_HOST", "127.0.0.1")
 DB_PORT = 5432
 
 
