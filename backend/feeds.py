@@ -16,6 +16,8 @@ FEEDS = [
      "url": "https://news.ycombinator.com/rss"},
     {"name": "BBC News", "section": "world",
      "url": "https://feeds.bbci.co.uk/news/world/rss.xml"},
+    {"name": "BBC News", "section": "us_and_canada",
+     "url": "https://feeds.bbci.co.uk/news/world/us_and_canada/rss.xml"},
     {"name": "BBC News", "section": "business",
      "url": "https://feeds.bbci.co.uk/news/business/rss.xml"},
     {"name": "BBC News", "section": "health",
