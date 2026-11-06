@@ -6,3 +6,4 @@ sentence-transformers
 pgvector
 scikit-learn
 numpy
+openai
