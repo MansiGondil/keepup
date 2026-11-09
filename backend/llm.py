@@ -3,12 +3,13 @@
 The rest of Keepup only calls generate(prompt). Which provider answers is
 chosen by LLM_PROVIDER in backend/.env:
   gemini  Google Gemini API free tier (needs GEMINI_API_KEY)
+  groq    Groq API free tier (needs GROQ_API_KEY)
   fake    no network; returns a fixed reply, for tests and offline work
 Adding another provider later = one more function + one line in PROVIDERS.
 
 Run from the backend folder:
   python llm.py          # send one short test prompt
-  python llm.py models   # list Gemini models your key can use
+  python llm.py models   # list the models your key can use
 """
 
 import os
@@ -25,6 +26,9 @@ GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta"
 # "-latest" is Google's alias for the current Flash-Lite model, so the
 # default doesn't go stale. Set GEMINI_MODEL in .env to pin a version.
 DEFAULT_GEMINI_MODEL = "gemini-flash-lite-latest"
+GROQ_URL = "https://api.groq.com/openai/v1"
+# Groq retires models often; check with: python llm.py models
+DEFAULT_GROQ_MODEL = "openai/gpt-oss-20b"
 TIMEOUT_SECONDS = 60
 
 
@@ -36,13 +40,33 @@ class LLMError(Exception):
         self.rate_limited = rate_limited
 
 
-def _gemini_headers():
-    key = os.environ.get("GEMINI_API_KEY")
+def _api_key(variable):
+    key = os.environ.get(variable)
     if not key:
-        raise LLMError("GEMINI_API_KEY is not set in backend/.env")
+        raise LLMError(f"{variable} is not set in backend/.env")
+    return key
+
+
+def _gemini_headers():
     # The key goes in a header, never in the URL, so it can't end up in
     # error messages or logs that print the URL.
-    return {"x-goog-api-key": key}
+    return {"x-goog-api-key": _api_key("GEMINI_API_KEY")}
+
+
+def _groq_headers():
+    return {"Authorization": f"Bearer {_api_key('GROQ_API_KEY')}"}
+
+
+def _raise_for_status(name, response):
+    """Turn an HTTP error into an LLMError with the provider's reason."""
+    if response.status_code == 200:
+        return
+    try:
+        reason = response.json()["error"]["message"]
+    except Exception:
+        reason = response.text[:200]
+    raise LLMError(f"{name}: HTTP {response.status_code}: {reason}",
+                   rate_limited=response.status_code == 429)
 
 
 def _gemini_generate(prompt, max_output_tokens, temperature):
@@ -59,14 +83,7 @@ def _gemini_generate(prompt, max_output_tokens, temperature):
     except httpx.HTTPError as error:
         raise LLMError(f"gemini: network error: {type(error).__name__}") from None
 
-    if response.status_code != 200:
-        # Google puts a readable reason in error.message.
-        try:
-            reason = response.json()["error"]["message"]
-        except Exception:
-            reason = response.text[:200]
-        raise LLMError(f"gemini: HTTP {response.status_code}: {reason}",
-                       rate_limited=response.status_code == 429)
+    _raise_for_status("gemini", response)
 
     data = response.json()
     candidates = data.get("candidates") or []
@@ -81,6 +98,34 @@ def _gemini_generate(prompt, max_output_tokens, temperature):
     return text
 
 
+def _groq_generate(prompt, max_output_tokens, temperature):
+    # Groq uses the same request format as OpenAI's chat completions.
+    model = os.environ.get("GROQ_MODEL") or DEFAULT_GROQ_MODEL
+    body = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "max_completion_tokens": max_output_tokens,
+        "temperature": temperature,
+    }
+    if model.startswith("openai/gpt-oss"):
+        # These models "think" before answering; keep that short so the
+        # token budget goes to the answer.
+        body["reasoning_effort"] = "low"
+    try:
+        response = httpx.post(f"{GROQ_URL}/chat/completions", headers=_groq_headers(),
+                              json=body, timeout=TIMEOUT_SECONDS)
+    except httpx.HTTPError as error:
+        raise LLMError(f"groq: network error: {type(error).__name__}") from None
+    _raise_for_status("groq", response)
+
+    choices = response.json().get("choices") or []
+    text = ((choices[0].get("message") or {}).get("content") or "").strip() if choices else ""
+    if not text:
+        reason = choices[0].get("finish_reason", "unknown") if choices else "no choices"
+        raise LLMError(f"groq: no text in response (finish_reason={reason})")
+    return text
+
+
 def _fake_generate(prompt, max_output_tokens, temperature):
     return ("This is a fake summary from the offline test provider. "
             "It ignores the prompt and always returns the same text.")
@@ -88,6 +133,7 @@ def _fake_generate(prompt, max_output_tokens, temperature):
 
 PROVIDERS = {
     "gemini": _gemini_generate,
+    "groq": _groq_generate,
     "fake": _fake_generate,
 }
 
@@ -104,19 +150,27 @@ def generate(prompt, max_output_tokens=400, temperature=0.2):
     return PROVIDERS[name](prompt, max_output_tokens, temperature)
 
 
-def list_gemini_models():
-    """Names of the Gemini models this key can call with generateContent."""
-    response = httpx.get(f"{GEMINI_URL}/models", headers=_gemini_headers(),
-                         params={"pageSize": 1000}, timeout=TIMEOUT_SECONDS)
-    response.raise_for_status()
-    return [m["name"].removeprefix("models/") for m in response.json().get("models", [])
-            if "generateContent" in m.get("supportedGenerationMethods", [])]
+def list_models():
+    """Names of the models the current provider's key can use."""
+    name = provider_name()
+    if name == "gemini":
+        response = httpx.get(f"{GEMINI_URL}/models", headers=_gemini_headers(),
+                             params={"pageSize": 1000}, timeout=TIMEOUT_SECONDS)
+        _raise_for_status(name, response)
+        return [m["name"].removeprefix("models/") for m in response.json().get("models", [])
+                if "generateContent" in m.get("supportedGenerationMethods", [])]
+    if name == "groq":
+        response = httpx.get(f"{GROQ_URL}/models", headers=_groq_headers(),
+                             timeout=TIMEOUT_SECONDS)
+        _raise_for_status(name, response)
+        return sorted(m["id"] for m in response.json().get("data", []) if m.get("active", True))
+    raise LLMError(f"provider '{name}' has no model list")
 
 
 def main():
     try:
         if sys.argv[1:] == ["models"]:
-            for name in list_gemini_models():
+            for name in list_models():
                 print(name)
             return
         print(f"provider: {provider_name()}")
