@@ -91,14 +91,17 @@ def topic_scores(headline, text=""):
     return scores
 
 
-def classify(headline, text="", fallback_topic=FALLBACK_TOPIC):
+def classify(headline, text="", fallback_topic=FALLBACK_TOPIC, allowed_topics=None):
     """Return (category, topics) for one story.
 
     headline: the story headline
     text:     extra text such as the feed snippet (optional)
     fallback_topic: used when nothing matches
+    allowed_topics: if given, only these topics can be picked
     """
     scores = topic_scores(headline, text)
+    if allowed_topics is not None:
+        scores = {t: s for t, s in scores.items() if t in allowed_topics}
     if not scores:
         topics = [fallback_topic]
     else:

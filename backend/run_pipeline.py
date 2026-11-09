@@ -1,7 +1,7 @@
 """Run the pipeline stages in order, each as its own process.
 
 Run from the backend folder:
-  python run_pipeline.py                 # all stages: ingest, embed, cluster
+  python run_pipeline.py                 # all stages: ingest, embed, cluster, classify
   python run_pipeline.py ingest cluster  # only these, in this order
 If a stage fails, the remaining stages are skipped and the exit code is 1.
 Each execution is logged as one row in pipeline_executions.
@@ -27,6 +27,7 @@ STAGES = {
     "ingest": "ingest.py",
     "embed": "embed_articles.py",
     "cluster": "cluster_stories.py",
+    "classify": "classify_stories.py",
 }
 
 # Keep in sync with LOOKBACK_DAYS in cluster_stories.py.
